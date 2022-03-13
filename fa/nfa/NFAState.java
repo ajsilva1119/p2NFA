@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import fa.dfa.DFAState;
+
 /**
  * Represents an NFAState object. ADD MORE HERE
  * 
@@ -24,6 +26,17 @@ public class NFAState extends fa.State{
     public NFAState(String name, boolean f) {
         this.name = name;
         this.isFinal = f;
+        this.transitions = new LinkedHashMap<Character,Set<NFAState>>();
+    }
+    
+    /**
+     * 
+     * 
+     * @param name
+     */
+    public NFAState(String name) {
+        this.name = name;
+        this.isFinal = false;
         this.transitions = new LinkedHashMap<Character,Set<NFAState>>();
     }
 
@@ -65,4 +78,34 @@ public class NFAState extends fa.State{
     public boolean isFinalState() {
     	return this.isFinal;
     }
+    
+    /**
+     * Updates the state to be a final state.
+     */
+    public void setToFinalState() {
+    	this.isFinal = true;
+    }
+    
+    /**
+     * @return the name of the state
+     */
+    public String getName() {
+    	return this.name;
+    }
+    
+	/**
+	 * Retrieves the states that <code>this</code> transitions to
+	 * on the given symbol
+	 * @param symb - the alphabet symbol
+	 * @return the new states
+	 */
+	public Set<NFAState> getTo(char symb){
+		Set<NFAState> ret = transitions.get(symb);
+		/*
+		 * if(ret == null){
+		 * System.err.println("ERROR: NFAState.getTo(char symb) returns null on " + symb
+		 * + " from " + name); System.exit(2); }
+		 */
+		return transitions.get(symb);
+	}
 }
