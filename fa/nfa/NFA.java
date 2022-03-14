@@ -3,8 +3,7 @@ package fa.nfa;
 import fa.State;
 import fa.dfa.DFA;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class NFA implements fa.nfa.NFAInterface{
 
@@ -106,26 +105,76 @@ public class NFA implements fa.nfa.NFAInterface{
 
     @Override
     public DFA getDFA() {
-        return null;
-    }
 
+        DFA dfa = new DFA();
+
+        String dfaStartState = eClosure(startState).toString();
+        dfa.addStartState(dfaStartState); //adds the eClosure of the startstate to DFA start state
+        dfa.addState(dfaStartState);
+        if(checkFinal(eClosure(startState))){ //adds start state to finalstate if contains NFA final
+            dfa.addFinalState(dfaStartState);
+        }
+        HashSet<Set<NFAState>> checkedStates = new LinkedHashSet<>(); //hold all the states checked
+        checkedStates.add(eClosure(startState));
+
+        Queue<Set<NFAState>> queue = new LinkedList<Set<NFAState>>(); // states to check if can be added to dfa
+        queue.add(eClosure(startState));
+
+        while (!queue.isEmpty()){
+            Set<NFAState> s = queue.poll();
+
+            for(char a : alphabet){
+                Set<NFAState> newState = new HashSet<NFAState>();
+                for(NFAState ss : s) { //
+                    newState.addAll(getToState(ss,a));
+                }
+
+                if(!checkedStates.contains(newState)) {
+                    queue.add(newState);
+                    checkedStates.add(newState);
+                    if (checkFinal(newState)) { //adds start state to finalstate if contains NFA final
+                        dfa.addFinalState(newState.toString());
+                    }
+                    else{
+                        dfa.addState(newState.toString());
+                    }
+                }
+                dfa.addTransition(s.toString(), a, newState.toString());
+
+            }
+
+
+        }
+
+        return dfa;
+    }
+    private boolean checkFinal(Set<NFAState> s){
+
+        for(NFAState state : s){
+            if(state.isFinalState()){
+                return true;
+            }
+        }
+        return false;
+    }
     @Override
     public Set<NFAState> getToState(NFAState from, char onSymb) {
-        return null;
+        return from.getTo(onSymb);
     }
+
 
     @Override
     public Set<NFAState> eClosure(NFAState s) {
     	Set<NFAState> eclosure = new LinkedHashSet<>();
     	eclosure.add(s); //starting point is part of closure
-    	
+
     	if(s.getTo(EMPTY)!=null) {
     		for(NFAState state: s.getTo(EMPTY)) {
-    			eclosure.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty			
+    			eclosure.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty
     		}
     	}
-    	
-    	
+
         return eclosure;
     }
+
 }
