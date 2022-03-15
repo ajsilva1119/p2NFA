@@ -5,6 +5,10 @@ import fa.dfa.DFA;
 
 import java.util.*;
 
+/**
+ * @author Kincaid Schmitt, Alex Silva
+ *
+ */
 public class NFA implements fa.nfa.NFAInterface{
 
     private LinkedHashSet<Character> alphabet;
@@ -15,6 +19,9 @@ public class NFA implements fa.nfa.NFAInterface{
     //Constants
 	private final char EMPTY = 'e';
 
+    /**
+     * 
+     */
     public NFA(){
         alphabet = new LinkedHashSet<>();
         states = new LinkedHashSet<>();
@@ -110,7 +117,7 @@ public class NFA implements fa.nfa.NFAInterface{
 
         String dfaStartState = eClosure(startState).toString();
         dfa.addStartState(dfaStartState); //adds the eClosure of the startstate to DFA start state
-        dfa.addState(dfaStartState);
+
         if(checkFinal(eClosure(startState))){ //adds start state to finalstate if contains NFA final
             dfa.addFinalState(dfaStartState);
         }
@@ -125,8 +132,12 @@ public class NFA implements fa.nfa.NFAInterface{
 
             for(char a : alphabet){
                 Set<NFAState> newState = new HashSet<NFAState>();
-                for(NFAState ss : s) { //
+                for(NFAState ss : s) { 
+                	if(getToState(ss,a) == null) continue;
                     newState.addAll(getToState(ss,a));
+                    for(NFAState z: getToState(ss,a)) {
+                    	newState.addAll(eClosure(z));                    	
+                    }
                 }
 
                 if(!checkedStates.contains(newState)) {
@@ -140,10 +151,7 @@ public class NFA implements fa.nfa.NFAInterface{
                     }
                 }
                 dfa.addTransition(s.toString(), a, newState.toString());
-
             }
-
-
         }
 
         return dfa;
@@ -165,12 +173,34 @@ public class NFA implements fa.nfa.NFAInterface{
 
     @Override
     public Set<NFAState> eClosure(NFAState s) {
+    	LinkedHashSet<NFAState> seen = new LinkedHashSet<>();
     	Set<NFAState> eclosure = new LinkedHashSet<>();
     	eclosure.add(s); //starting point is part of closure
-
-    	if(s.getTo(EMPTY)!=null) {
+    	seen.add(s);
+    	if(s.getTo(EMPTY) != null) {
     		for(NFAState state: s.getTo(EMPTY)) {
-    			eclosure.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty
+    			eclosure.addAll(eClosure(state, seen)); //adds all of the eclosures of every state reached on initial empty    				
+    		}
+    	}
+
+        return eclosure;
+    }
+    
+    /**
+     * @param s
+     * @param seenEclosureStates
+     * @return
+     */
+    private Set<NFAState> eClosure(NFAState s,  LinkedHashSet<NFAState> seenEclosureStates) {
+    	Set<NFAState> eclosure = new LinkedHashSet<>();
+    	eclosure.add(s); //starting point is part of closure
+    	seenEclosureStates.add(s);
+    	
+    	if(s.getTo(EMPTY) != null) {
+    		for(NFAState state: s.getTo(EMPTY)) {
+    			if(!seenEclosureStates.contains(state)) {
+    				eclosure.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty    				    				
+    			}
     		}
     	}
 
