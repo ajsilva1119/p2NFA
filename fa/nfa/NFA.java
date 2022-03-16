@@ -31,6 +31,13 @@ public class NFA implements fa.nfa.NFAInterface{
     
     @Override
     public void addStartState(String name) {
+
+        for(NFAState s : finalStates){
+            if(s.getName().equals(name)){
+                startState = s;
+                return;
+            }
+        }
         NFAState start = new NFAState(name);
         startState = start;
         states.add(start);
@@ -116,16 +123,17 @@ public class NFA implements fa.nfa.NFAInterface{
         DFA dfa = new DFA();
 
         String dfaStartState = eClosure(startState).toString();
-        dfa.addStartState(dfaStartState); //adds the eClosure of the startstate to DFA start state
-
-        if(checkFinal(eClosure(startState))){ //adds start state to finalstate if contains NFA final
+        Set<NFAState> eClose = eClosure(startState);
+        if(checkFinal(eClose)){ //adds start state to finalstate if contains NFA final
             dfa.addFinalState(dfaStartState);
         }
+        dfa.addStartState(dfaStartState); //adds the eClosure of the startstate to DFA start state
+
         HashSet<Set<NFAState>> checkedStates = new LinkedHashSet<>(); //hold all the states checked
-        checkedStates.add(eClosure(startState));
+        checkedStates.add(eClose);
 
         Queue<Set<NFAState>> queue = new LinkedList<Set<NFAState>>(); // states to check if can be added to dfa
-        queue.add(eClosure(startState));
+        queue.add(eClose);
 
         while (!queue.isEmpty()){
             Set<NFAState> s = queue.poll();
