@@ -6,6 +6,8 @@ import fa.dfa.DFA;
 import java.util.*;
 
 /**
+ * 
+ * 
  * @author Kincaid Schmitt, Alex Silva
  *
  */
@@ -31,14 +33,12 @@ public class NFA implements fa.nfa.NFAInterface{
     
     @Override
     public void addStartState(String name) {
-
-        for(NFAState s : finalStates){
-            if(s.getName().equals(name)){
-                startState = s;
-                return;
-            }
-        }
-        NFAState start = new NFAState(name);
+    	NFAState start = getNFAObj(name);
+    	if(start != null) {
+            startState = start;
+            return;
+    	}
+        start = new NFAState(name);
         startState = start;
         states.add(start);
     }
@@ -124,7 +124,7 @@ public class NFA implements fa.nfa.NFAInterface{
 
         String dfaStartState = eClosure(startState).toString();
         Set<NFAState> eClose = eClosure(startState);
-        if(checkFinal(eClose)){ //adds start state to finalstate if contains NFA final
+        if(checkContainsFinal(eClose)){ //adds start state to finalstate if contains NFA final
             dfa.addFinalState(dfaStartState);
         }
         dfa.addStartState(dfaStartState); //adds the eClosure of the startstate to DFA start state
@@ -151,7 +151,7 @@ public class NFA implements fa.nfa.NFAInterface{
                 if(!checkedStates.contains(newState)) {
                     queue.add(newState);
                     checkedStates.add(newState);
-                    if (checkFinal(newState)) { //adds start state to finalstate if contains NFA final
+                    if (checkContainsFinal(newState)) { //adds start state to finalstate if contains NFA final
                         dfa.addFinalState(newState.toString());
                     }
                     else{
@@ -161,15 +161,17 @@ public class NFA implements fa.nfa.NFAInterface{
                 dfa.addTransition(s.toString(), a, newState.toString());
             }
         }
-
         return dfa;
     }
-    private boolean checkFinal(Set<NFAState> s){
-
+    
+    
+    /**
+     * @param s
+     * @return
+     */
+    private boolean checkContainsFinal(Set<NFAState> s){
         for(NFAState state : s){
-            if(state.isFinalState()){
-                return true;
-            }
+            if(state.isFinalState()) return true;
         }
         return false;
     }
