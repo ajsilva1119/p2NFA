@@ -23,7 +23,7 @@ public class NFA implements fa.nfa.NFAInterface{
     private NFAState startState;
     
     //Constants
-	private final char EMPTY = 'e';
+	private final char EPSILON = 'e';
 
     /**
      * Constructor to create a new NFA object
@@ -103,7 +103,7 @@ public class NFA implements fa.nfa.NFAInterface{
      */
     private void addAlphaChar(char onSymb) {
     	//check if the symbol does not exist in the alphabet and it is not an epsilon
-    	if(!alphabet.contains(onSymb) && onSymb != EMPTY) {
+    	if(!alphabet.contains(onSymb) && onSymb != EPSILON) {
     		alphabet.add(onSymb);
     	}
     }
@@ -130,12 +130,14 @@ public class NFA implements fa.nfa.NFAInterface{
 
     @Override
     public DFA getDFA() {
-
+    	//instantiate new DFA object
         DFA dfa = new DFA();
 
+        //start state of DFA is the eclosure of the NFA start state
         String dfaStartState = eClosure(startState).toString();
         Set<NFAState> eClose = eClosure(startState);
-        if(checkContainsFinal(eClose)){ //adds start state to finalstate if contains NFA final
+        
+        if(checkContainsFinal(eClose)){ //adds start state to finalstate if eClose contains a final
             dfa.addFinalState(dfaStartState);
         }
         dfa.addStartState(dfaStartState); //adds the eClosure of the startstate to DFA start state
@@ -146,22 +148,25 @@ public class NFA implements fa.nfa.NFAInterface{
         Queue<Set<NFAState>> queue = new LinkedList<Set<NFAState>>(); // states to check if can be added to dfa
         queue.add(eClose);
 
+        //iterate until queue is empty
         while (!queue.isEmpty()){
-            Set<NFAState> s = queue.poll();
-
+            Set<NFAState> s = queue.poll(); //get the set of head states
+            //iterate over all alphabet characters
             for(char a : alphabet){
                 Set<NFAState> newState = new HashSet<NFAState>();
+                //iterate over all the states in the set
                 for(NFAState ss : s) { 
+                	//check that there is a transition given the input character
                 	if(getToState(ss,a) == null) continue;
                     newState.addAll(getToState(ss,a));
                     for(NFAState z: getToState(ss,a)) {
                     	newState.addAll(eClosure(z));                    	
                     }
                 }
-
+                //check if the checked states contains the new state
                 if(!checkedStates.contains(newState)) {
-                    queue.add(newState);
-                    checkedStates.add(newState);
+                    queue.add(newState); //add the new state
+                    checkedStates.add(newState); //add state to checked states
                     if (checkContainsFinal(newState)) { //adds start state to finalstate if contains NFA final
                         dfa.addFinalState(newState.toString());
                     }
@@ -169,6 +174,7 @@ public class NFA implements fa.nfa.NFAInterface{
                         dfa.addState(newState.toString());
                     }
                 }
+                //add the transition
                 dfa.addTransition(s.toString(), a, newState.toString());
             }
         }
@@ -205,8 +211,8 @@ public class NFA implements fa.nfa.NFAInterface{
     	
     	eclosure.add(s); //starting point is part of closure
     	seen.add(s); //add to list of evaluated states
-    	if(s.getTo(EMPTY) != null) {
-    		for(NFAState state: s.getTo(EMPTY)) {
+    	if(s.getTo(EPSILON) != null) {
+    		for(NFAState state: s.getTo(EPSILON)) {
     			eclosure.addAll(eClosure(state, seen)); //adds all of the eclosures of every state reached on initial empty    				
     		}
     	}
@@ -228,8 +234,8 @@ public class NFA implements fa.nfa.NFAInterface{
     	eclosure.add(s); //starting point is part of closure
     	seenEclosureStates.add(s);
     	
-    	if(s.getTo(EMPTY) != null) {
-    		for(NFAState state: s.getTo(EMPTY)) {
+    	if(s.getTo(EPSILON) != null) {
+    		for(NFAState state: s.getTo(EPSILON)) {
     			if(!seenEclosureStates.contains(state)) { //only evaluate the next eclosure on states we have not seen before
     				eclosure.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty    				    				
     			}
