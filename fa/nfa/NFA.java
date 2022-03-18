@@ -205,18 +205,23 @@ public class NFA implements fa.nfa.NFAInterface{
 
     @Override
     public Set<NFAState> eClosure(NFAState s) {
+    	//instantiate new stack to add states
+    	Stack<NFAState> stack = new Stack<>();
     	//instantiate new list objects for seen states and eclosure states
     	LinkedHashSet<NFAState> seen = new LinkedHashSet<>(); //use to prevent evaluating multiple states infinite times
-    	Set<NFAState> eclosure = new LinkedHashSet<>();
     	
-    	eclosure.add(s); //starting point is part of closure
+    	stack.add(s); //starting point is part of closure
     	seen.add(s); //add to list of evaluated states
     	if(s.getTo(EPSILON) != null) {
     		for(NFAState state: s.getTo(EPSILON)) {
-    			eclosure.addAll(eClosure(state, seen)); //adds all of the eclosures of every state reached on initial empty    				
+    			stack.addAll(eClosure(state, seen)); //adds all of the eclosures of every state reached on initial empty    				
     		}
     	}
-
+    	
+    	Set<NFAState> eclosure = new LinkedHashSet<>();
+    	for(NFAState st: stack) {
+    		eclosure.add(st);
+    	}
         return eclosure;
     }
     
@@ -229,19 +234,23 @@ public class NFA implements fa.nfa.NFAInterface{
      * @return - the set of states reachable from the epsilon transition
      */
     private Set<NFAState> eClosure(NFAState s,  LinkedHashSet<NFAState> seenEclosureStates) {
-    	//instantiate new list to store eclosure states
-    	Set<NFAState> eclosure = new LinkedHashSet<>();
-    	eclosure.add(s); //starting point is part of closure
+    	//Create new stack
+    	Stack<NFAState> stack = new Stack<NFAState>();
+    	stack.add(s); //starting point is part of closure
     	seenEclosureStates.add(s);
     	
     	if(s.getTo(EPSILON) != null) {
     		for(NFAState state: s.getTo(EPSILON)) {
     			if(!seenEclosureStates.contains(state)) { //only evaluate the next eclosure on states we have not seen before
-    				eclosure.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty    				    				
+    				stack.addAll(eClosure(state)); //adds all of the eclosures of every state reached on initial empty    				    				
     			}
     		}
     	}
-
+    	//instantiate new list to store eclosure states
+    	Set<NFAState> eclosure = new LinkedHashSet<>();
+    	for(NFAState st: stack) {
+    		eclosure.add(st);
+    	}
         return eclosure;
     }
 
